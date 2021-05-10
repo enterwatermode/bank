@@ -1,3 +1,4 @@
+from datetime import datetime
 from flask import Flask, request, render_template,  redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 
@@ -68,6 +69,8 @@ def send():
             sender.balance -= int(amount)
             receiver = db.session.query(account).filter_by(id = transfer_to).first() 
             receiver.balance += int(amount)
+            new_record = record(sender = sender.id, receiver = receiver.id, amount = amount, time = str(datetime.now().time))
+            db.session.add(new_record)         
             db.session.commit()
             return ("transfer to account: " + transfer_to, "amount: " + amount)
         else:

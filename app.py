@@ -1,14 +1,25 @@
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template,  redirect, url_for
 app = Flask(__name__)
 
 
-@app.route("/")
+@app.route("/",  methods=['POST',  'GET'])
 def index():
-    return render_template("index.html")
+    if request.method == "GET":
+        return render_template("index.html")
+    elif request.method == "Post":
+        name = account_number = request.form.get('account_number')
+        return redirect(url_for('user',name = "account: " + name)) 
 
-@app.route("/register")
+
+
+
+@app.route("/register", methods = ['POST', 'GET'])
 def register():
-    return render_template("register.html")
+    if request.method == "GET":
+        return render_template("register.html")
+    elif request.method == "POST":
+        name = request.form.get('name')
+        return redirect(url_for('user',name = name))
 
 @app.route("/send")
 def send():

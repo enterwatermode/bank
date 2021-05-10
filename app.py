@@ -54,9 +54,27 @@ def register():
         name = request.form.get('name')
         return redirect(url_for('user',name = name))
 
-@app.route("/send")
+@app.route("/send", methods = ['POST', 'GET'])
 def send():
-    return render_template("send.html")
+    if request.method == "GET":
+        return render_template("send.html")
+    if request.method == "POST":
+        transfer_to = request.form.get('transfer_to')
+        amount = request.form.get('amount')
+        if verify(transfer_to, amount):
+            return ("transfer to account: " + transfer_to, "amount: " + amount)
+        else:
+            return "Transaction failed"    
+
+
+def verify(transfer_to, amount):    
+    # transfer_to exist in db
+    exist = db.session.query(account).filter_by(id = transfer_to).first() is not None
+    if exist:
+        return True
+    else:
+        return False
+    # todo: current balance > amount
 
 @app.route("/user/<name>")
 def user(name):

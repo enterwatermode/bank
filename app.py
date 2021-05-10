@@ -26,7 +26,8 @@ class record(db.Model):
     amount = db.Column(db.Integer)
     time = db.Column(db.Text)
 
-    def __init__(self, sender, receiver, amount, time):
+    def __init__(self, id, sender, receiver, amount, time):
+        self.id = id
         self.sender = sender
         self.receiver = receiver
         self.amount = amount
@@ -88,7 +89,7 @@ def send(id):
                 sender.balance -= int(amount)
                 receiver = db.session.query(account).filter_by(id = transfer_to).first() 
                 receiver.balance += int(amount)
-                new_record = record(sender = sender.id, receiver = receiver.id, amount = amount, time = str(datetime.now().time))
+                new_record = record(id = None, sender = sender.id, receiver = receiver.id, amount = amount, time = str(datetime.now().time))
                 db.session.add(new_record)         
                 db.session.commit()
                 return ("transfer to account: " + transfer_to, "amount: " + amount)

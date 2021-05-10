@@ -33,20 +33,21 @@ class record(db.Model):
 
 db.create_all()
 admin = account(id=0, username="admin", password="12345", balance=0)
-eric = account(id=1, username="eric", password="uci266", balance=100)
+eric = account(id=None, username="eric", password="uci266", balance=100)
 db.session.add(admin)
 db.session.add(eric)
 db.session.commit()
 
-@app.route("/",  methods=['GET'])
+@app.route("/", methods = ['POST', 'GET'])
 def index():
     return render_template("index.html")
 
-@app.route("/login", methods = ["POST"])
+@app.route("/login", methods = ['POST', 'GET'])
 def login():
     id = request.form.get("account_number")
     password = request.form.get("password")
-    acc = account.query.get(id=id)
+    acc = account.query.get(id)
+    print(acc.password)
     if acc is not None and acc.password == password:
         session[id] = acc.username
         return redirect(url_for('user', id = id, name = "account: {}".format(acc.username), balance = acc.balance)) 
@@ -59,26 +60,20 @@ def register():
     elif request.method == "POST":
         name = request.form.get('name')
         password = request.form.get('password')
-        new_acc = account(None, name, password, 0)
+        new_acc = account(id = None, username = name, password = password, balance = 0)
         db.session.add(new_acc)
         db.session.commit()
-        session[id] = name
-        return redirect(url_for('user', name = name))
+        last = account.query.filter_by(username = name).first()
+        session[str(last.id)] = name
+        return redirect(url_for('user', id = last.id))
 
-@app.route("/user/<id>", methods = ["GET"])
-def user(id):
-    if id in session:
-        return render_template("user.html", id = id, name = session[id])
-    else:
-        return redirect(url_for("index"))
-
-@app.route("/logout/<id>", methods = ["POST"])
+@app.route("/logout/<id>")
 def logout(id):
     session.pop(id, None)
     return redirect(url_for("index"))
 
 @app.route("/send/<id>", methods = ['POST', 'GET'])
-def send():
+def send(id):
     if id in session:
         if request.method == "GET":
             return render_template("send.html")
@@ -112,7 +107,6 @@ def verify(transfer_to, amount, my_id):
         return True
     else:
         return False
-
 
 @app.route("/user/<id>")
 def user(id):

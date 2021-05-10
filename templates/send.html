@@ -1,8 +1,26 @@
 <!doctype html>
 
-{% extends 'base.html' %}
+{% extends 'baseUser.html' %}
 {% block content %}
-<title> Send </title>
-<h1> Send  </h1>
+<div class="column is-4 is-offset-4">
+    <h3 class="title">Send</h3>
+    <div class="box">
+        <form method="POST" action="/send">
+            <div class="field">
+                <div class="control">
+                    <input class="input is-large" type="text" name="amount" placeholder="Amount" autofocus="">
+                </div>
+            </div>
+
+            <div class="field">
+                <div class="control">
+                    <input class="input is-large" type="text" name="transfer_to" placeholder="Transfer to">
+                </div>
+            </div>
+
+            <button class="button is-block is-info is-large is-fullwidth">Send</button>
+        </form>
+    </div>
+</div>
 
 {% endblock %}

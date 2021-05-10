@@ -65,13 +65,6 @@ def register():
         session[id] = name
         return redirect(url_for('user', name = name))
 
-@app.route("/send/<id>", methods = ["POST"])
-def send(id):
-    if id in session:
-        return render_template("send.html")
-    else:
-        return redirect(url_for("index"))
-
 @app.route("/user/<id>", methods = ["GET"])
 def user(id):
     if id in session:
@@ -83,6 +76,62 @@ def user(id):
 def logout(id):
     session.pop(id, None)
     return redirect(url_for("index"))
+
+@app.route("/send/<id>", methods = ['POST', 'GET'])
+def send():
+    if id in session:
+        if request.method == "GET":
+            return render_template("send.html")
+        if request.method == "POST":
+            transfer_to = request.form.get('transfer_to')
+            amount = request.form.get('amount')
+            #todo: get my real id
+            my_id = 1
+            if verify(transfer_to, amount, my_id):
+                sender = db.session.query(account).filter_by(id = my_id).first()
+                sender.balance -= int(amount)
+                receiver = db.session.query(account).filter_by(id = transfer_to).first() 
+                receiver.balance += int(amount)
+                db.session.commit()
+                return ("transfer to account: " + transfer_to, "amount: " + amount)
+            else:
+                return "Transaction failed"  
+    else:
+        return redirect(url_for("index"))
+        
+
+def verify(transfer_to, amount, my_id):    
+    # transfer_to exist in db
+    exist = db.session.query(account).filter_by(id = transfer_to).first() is not None
+    if not exist:
+        app.logger.error('not exist')
+    enough_balance = int(db.session.query(account).filter_by(id = my_id).first().balance) >= int(amount)
+    if not enough_balance:
+        app.logger.error('not enough balance')
+    if exist and enough_balance:
+        return True
+    else:
+        return False
+
+
+@app.route("/user/<id>")
+def user(id):
+    # 临时数据
+    records = [
+        {
+            'receiver': 'Tom',
+            'amount': 100,
+            'time': 'june 6, 2010'
+        },
+        {
+            'receiver': 'Jerry',
+            'amount': 250,
+            'time': 'May 5, 2010'
+        }
+    ]
+
+    balance = 1000
+    return render_template("user.html", id=id, balance = balance, records = records)
 
 if __name__ == "__main__":
     app.run(debug=True)

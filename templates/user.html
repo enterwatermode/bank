@@ -2,11 +2,34 @@
 <title> Welcome </title>
 <!doctype html>
 
-{% extends 'base.html' %}
+{% extends 'baseUser.html' %}
 {% block content %}
 
 <title> User </title>
-<h1> User  </h1>
-<h1> Hi {{name}} </h1>
+<h1> Hi {{id}} </h1>
+<div>
+    <h3>Your current banlance is {{balance}}</h3>
+</div>
+</br>
+<div>
+    <h3>Your transfer records</h3>
 
+    <table>
+        <thead>
+            <td>Receiver</td>
+            <td>Amount</td>
+            <td>Time</td>
+        </thead>
+        <tbody>
+            {% for record in records %}
+                <tr>
+                    <td>{{record.receiver}}</td>
+                    <td>{{record.amount}}</td>
+                    <td>{{record.time}}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <!-- reference for the for-loop: https://blog.csdn.net/legend818/article/details/103644565 -->
+</div>
 {% endblock %}

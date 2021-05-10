@@ -4,34 +4,38 @@
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
-    <link rel="stylesheet" type="text/css" href={{ url_for('static', filename='css/login.css') }}>    
+    <link rel="stylesheet" type="text/css" href={{ url_for('static', filename='css/login.css') }}>
 </head>
 
-<div class="column is-4 is-offset-4">
-<<<<<<< HEAD
+<body>    
     <div>
-        <p class="headline">Please login</p>
+        <h3>Bank of Risk. Welcome! Dear customer</h3>
     </div>
-    <div class="box mid">
-        <form method="POST" action="/">
-=======
-    <h3 class="title">Login</h3>
-    <div class="box">
-        <form method="POST" action="/login">
->>>>>>> refs/remotes/origin/main
-            <div class="field">
-                <div class="control">
-                    <p>Account number: </p><input class="input is-large" type="text" name="account_number" placeholder="Your account number" autofocus="">
-                </div>
-            </div>
 
-            <div class="field">
-                <div class="control">
-                    <p>Password: </p><input class="input is-large" type="password" name="password" placeholder="Your Password">
-                </div>
-            </div>
+    <div class="column is-4 is-offset-4 mid">
 
-            <button class="button is-block is-info is-large is-fullwidth">Login</button>
-        </form>
+        <h3>Login</h3>
+        <div class="box">
+            <form method="POST" action="/login">
+
+                <div class="field">
+                    <div class="control" >
+                        <p>Account number: </p><input class="input is-large" type="text" name="account_number" placeholder="Your account number" autofocus="" id="id">
+                    </div>
+                </div>
+
+                <div class="field">
+                    <div class="control">
+                        <p>Password: </p><input class="input is-large" type="password" name="password" placeholder="Your Password">
+                    </div>
+                </div>
+
+                <button class="button is-block is-info is-large is-fullwidth">Login</button>
+                <br/>
+                <a href="/register">Register Here</a>
+            </form>
+        </div>
     </div>
-</div>
+    
+    <script src="{{url_for('static', filename='js/index.js')}}"></script>
+</body>

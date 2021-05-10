@@ -128,7 +128,8 @@ def user(id):
     ]
 
     balance = 1000
-    return render_template("user.html", id=id, balance = balance, records = records)
+    acc = account.query.get(id);
+    return render_template("user.html", id=id, name = acc.username, balance = acc.balance, records = records)
 
 if __name__ == "__main__":
     app.run(debug=True)

@@ -1,14 +1,7 @@
-.headline {
-    text-align: center;
-    padding-top: 30px;
-    font-size: 25px;
-}
 
 .mid {
     text-align: center;
     margin: auto;
     left: 0;
     right: 0;
-    margin-top: 20px;
-    padding-top: 20px;
 }

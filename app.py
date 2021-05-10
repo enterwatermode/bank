@@ -1,8 +1,10 @@
 from flask import Flask, request, render_template,  redirect, url_for
+from flask.globals import session
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///bank.db'
+app.secret_key = 'uci266p'
 db = SQLAlchemy(app)
 
 class account(db.Model):
@@ -36,15 +38,19 @@ db.session.add(admin)
 db.session.add(eric)
 db.session.commit()
 
-@app.route("/",  methods=['POST',  'GET'])
+@app.route("/",  methods=['GET'])
 def index():
-    if request.method == "GET":
-        return render_template("index.html")
-    elif request.method == "Post":
-        name = account_number = request.form.get('account_number')
-        return redirect(url_for('user',name = "account: " + name)) 
+    return render_template("index.html")
 
-
+@app.route("/login", methods = ["POST"])
+def login():
+    id = request.form.get("account_number")
+    password = request.form.get("password")
+    acc = account.query.get(id=id)
+    if acc is not None and acc.password == password:
+        session[id] = acc.username
+        return redirect(url_for('user', id = id, name = "account: {}".format(acc.username), balance = acc.balance)) 
+    return render_template("index.html")
 
 @app.route("/register", methods = ['POST', 'GET'])
 def register():
@@ -52,15 +58,31 @@ def register():
         return render_template("register.html")
     elif request.method == "POST":
         name = request.form.get('name')
-        return redirect(url_for('user',name = name))
+        password = request.form.get('password')
+        new_acc = account(None, name, password, 0)
+        db.session.add(new_acc)
+        db.session.commit()
+        session[id] = name
+        return redirect(url_for('user', name = name))
 
-@app.route("/send")
-def send():
-    return render_template("send.html")
+@app.route("/send/<id>", methods = ["POST"])
+def send(id):
+    if id in session:
+        return render_template("send.html")
+    else:
+        return redirect(url_for("index"))
 
-@app.route("/user/<name>")
-def user(name):
-    return render_template("user.html", name=name)
+@app.route("/user/<id>", methods = ["GET"])
+def user(id):
+    if id in session:
+        return render_template("user.html", id = id, name = session[id])
+    else:
+        return redirect(url_for("index"))
+
+@app.route("/logout/<id>", methods = ["POST"])
+def logout(id):
+    session.pop(id, None)
+    return redirect(url_for("index"))
 
 if __name__ == "__main__":
     app.run(debug=True)

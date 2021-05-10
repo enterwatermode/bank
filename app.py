@@ -58,9 +58,26 @@ def register():
 def send():
     return render_template("send.html")
 
+
+
 @app.route("/user/<name>")
 def user(name):
-    return render_template("user.html", name=name)
+    # 临时数据
+    records = [
+        {
+            'receiver': 'Tom',
+            'amount': 100,
+            'time': 'june 6, 2010'
+        },
+        {
+            'receiver': 'Jerry',
+            'amount': 250,
+            'time': 'May 5, 2010'
+        }
+    ]
+
+    balance = 1000;
+    return render_template("user.html", name=name, balance = balance, records = records)
 
 if __name__ == "__main__":
     app.run(debug=True)

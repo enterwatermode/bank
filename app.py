@@ -78,8 +78,8 @@ def verify(transfer_to, amount):
 
 
 
-@app.route("/user/<name>")
-def user(name):
+@app.route("/user/<id>")
+def user(id):
     # 临时数据
     records = [
         {
@@ -95,7 +95,7 @@ def user(name):
     ]
 
     balance = 1000;
-    return render_template("user.html", name=name, balance = balance, records = records)
+    return render_template("user.html", id=id, balance = balance, records = records)
 
 if __name__ == "__main__":
     app.run(debug=True)

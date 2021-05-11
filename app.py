@@ -24,7 +24,7 @@ class record(db.Model):
     sender = db.Column(db.Integer)
     receiver = db.Column(db.Integer)
     amount = db.Column(db.Integer)
-    time = db.Column(db.Text)
+    time = db.Column(db.DateTime, default=datetime.now)
 
     def __init__(self, id, sender, receiver, amount, time):
         self.id = id
@@ -111,7 +111,7 @@ def send():
                     sender.balance -= amount
                     receiver = db.session.query(account).filter_by(id = transfer_to).first() 
                     receiver.balance += amount
-                    new_record = record(id = None, sender = sender.id, receiver = receiver.id, amount = amount, time = str(datetime.now().time))
+                    new_record = record(id = None, sender = sender.id, receiver = receiver.id, amount = amount, time = datetime.utcnow())
                     db.session.add(new_record)         
                     db.session.commit()
                     acc = account.query.get(my_id)

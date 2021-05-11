@@ -51,19 +51,8 @@ def login():
     acc = account.query.get(id)
     if acc is not None and acc.password == password:
         session[str(id)] = acc.username
-        return render_template("user.html", id = id, name = acc.username, balance = acc.balance, msg = "", records = [
-                                                                                                                    {
-                                                                                                                        'receiver': 'Tom',
-                                                                                                                        'amount': 100,
-                                                                                                                        'time': 'june 6, 2010'
-                                                                                                                    },
-                                                                                                                    {
-                                                                                                                        'receiver': 'Jerry',
-                                                                                                                        'amount': 250,
-                                                                                                                        'time': 'May 5, 2010'
-                                                                                                                    }
-                                                                                                                ])
-    return render_template("index.html")
+        return redirect("/user/{}".format(id))
+    return redirect("/")
 
 @app.route("/register", methods = ['POST', 'GET'])
 def register():
@@ -77,35 +66,38 @@ def register():
         db.session.commit()
         last = account.query.filter_by(username = name).first()
         session[str(last.id)] = name
-        return render_template("user.html", id = last.id, name = last.username, balance = last.balance, msg = "", records = [
-                                                                                                                            {
-                                                                                                                                'receiver': 'Tom',
-                                                                                                                                'amount': 100,
-                                                                                                                                'time': 'june 6, 2010'
-                                                                                                                            },
-                                                                                                                            {
-                                                                                                                                'receiver': 'Jerry',
-                                                                                                                                'amount': 250,
-                                                                                                                                'time': 'May 5, 2010'
-                                                                                                                            }
-                                                                                                                        ])
+        return redirect("/user/{}".format(last.id))
+
+@app.route("/user/<id>")
+def user(id):
+    acc = account.query.get(id)
+    return render_template("user.html", id = id, name = acc.username, balance = acc.balance, records = [
+                                                                                                                    {
+                                                                                                                        'receiver': 'Tom',
+                                                                                                                        'amount': 100,
+                                                                                                                        'time': 'june 6, 2010'
+                                                                                                                    },
+                                                                                                                    {
+                                                                                                                        'receiver': 'Jerry',
+                                                                                                                        'amount': 250,
+                                                                                                                        'time': 'May 5, 2010'
+                                                                                                                    }
+                                                                                                                ])
 
 @app.route("/logout", methods = ['POST', 'GET'])
 def logout():
     if request.method == "POST":
         id = request.form.get('id')
         session.pop(id, None)
-    return redirect(url_for("index"))
+    return redirect("/")
 
 @app.route("/send", methods = ['POST', 'GET'])
 def send():
         if request.method == "POST":
-            print(request.form)
             my_id = int(request.form.get('id'))
             if str(my_id) in session:
                 transfer_to = int(request.form.get('transfer_to'))
                 amount = int(request.form.get('amount'))
-                print(transfer_to, amount, my_id)
                 if verify(transfer_to, amount, my_id):
                     sender = db.session.query(account).filter_by(id = my_id).first()
                     sender.balance -= amount
@@ -115,35 +107,12 @@ def send():
                     db.session.add(new_record)         
                     db.session.commit()
                     acc = account.query.get(my_id)
-                    print(acc.id, acc.balance, acc.username)
-                    return render_template("user.html", id = my_id, name = acc.username, balance = acc.balance, msg = "You have successfully sent to account: {} {}$!".format(transfer_to, amount), records = [
-                                                                                                                                                                                                    {
-                                                                                                                                                                                                        'receiver': 'Tom',
-                                                                                                                                                                                                        'amount': 100,
-                                                                                                                                                                                                        'time': 'june 6, 2010'
-                                                                                                                                                                                                    },
-                                                                                                                                                                                                    {
-                                                                                                                                                                                                        'receiver': 'Jerry',
-                                                                                                                                                                                                        'amount': 250,
-                                                                                                                                                                                                        'time': 'May 5, 2010'
-                                                                                                                                                                                                    }
-                                                                                                                                                                                                ])
+                    return { "balance": acc.balance, "msg": "You have successfully sent to account: {} {}$!".format(transfer_to, amount) }
                 else:
                     acc = account.query.get(my_id)
-                    return render_template("user.html", id = my_id, name = acc.username, balance = acc.balance, msg = "Transaction Failed", records = [
-                                                                                                                                            {
-                                                                                                                                                'receiver': 'Tom',
-                                                                                                                                                'amount': 100,
-                                                                                                                                                'time': 'june 6, 2010'
-                                                                                                                                            },
-                                                                                                                                            {
-                                                                                                                                                'receiver': 'Jerry',
-                                                                                                                                                'amount': 250,
-                                                                                                                                                'time': 'May 5, 2010'
-                                                                                                                                            }
-                                                                                                                                        ])
+                    return { "balance": acc.balance, "msg": "Transaction Failed" }
         else:
-            return redirect(url_for("index"))
+            return redirect("/")
 
 def verify(transfer_to, amount, my_id):    
     # transfer_to exist in db

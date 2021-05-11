@@ -13,11 +13,11 @@
     <body>
         <h1> Welcome {{name}}</h1>
         <div>
-            <p>{{msg}}</p>
+            <p id="msg"></p>
         </div>
         <div>
             <p>Your account number is <span id="idNum">{{id}}</span></p>
-            <p>Your current balance is {{balance}}</p>
+            <p>Your current balance is <span id="balance">{{balance}}</span></p>
         </div>
         <div>
             <input id = "amount" type="text" name="amount" placeholder="Amount">
@@ -50,8 +50,10 @@
     </body>
     <script>
         const id = document.getElementById("idNum").innerText
+        const balance = document.getElementById("balance")
         const transfer = document.getElementById("transfer")
         const logout = document.getElementById("logout")
+        const msg = document.getElementById("msg")
         transfer.addEventListener("click", () => {
             const xhr = new XMLHttpRequest();
             xhr.open("POST", "/send", true)
@@ -59,10 +61,10 @@
             const amount = document.getElementById("amount").value
             const receiver = document.getElementById("receiver").value
             xhr.onreadystatechange = function() {
-                if (xhr.readyState == 4 && xhr.status == 200) {
-                    alert("Transaction Successful!")
-                } else {
-                    alert("Transaction Failed!")
+                if (xhr.readyState == XMLHttpRequest.DONE) {
+                    const jsonRes = JSON.parse(xhr.response)
+                    balance.innerText = jsonRes.balance
+                    msg.innerText = jsonRes.msg
                 }
             }
             xhr.send(`id=${id}&transfer_to=${receiver}&amount=${amount}`)

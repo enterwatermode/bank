@@ -59,11 +59,7 @@
             const amount = document.getElementById("amount").value
             const receiver = document.getElementById("receiver").value
             xhr.onreadystatechange = function() {
-                if (xhr.readyState == 4 && xhr.status == 200) {
-                    alert("Transaction Successful!")
-                } else {
-                    alert("Transaction Failed!")
-                }
+
             }
             xhr.send(`id=${id}&transfer_to=${receiver}&amount=${amount}`)
         })

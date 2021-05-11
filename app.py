@@ -2,7 +2,8 @@ from datetime import datetime
 from flask import Flask, request, render_template,  redirect
 from flask.globals import session
 from flask_sqlalchemy import SQLAlchemy
-
+from flask import send_file
+import os
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///bank.db'
 app.secret_key = 'uci266p'
@@ -160,6 +161,15 @@ def getRecords(id):
     records = [{"sender": record.sender, "receiver": record.receiver, "amount": record.amount, "time": record.time.strftime('%B %d %Y - %H:%M:%S')} for record in send_record] \
     + [{"sender": record.sender, "receiver": record.receiver, "amount": record.amount, "time": record.time.strftime('%B %d %Y - %H:%M:%S')} for record in receive_record]
     return records
+
+@app.route('/return-files')
+def return_file():
+    try:
+        file = request.args.get('file')
+        return send_file(os.path.join(os.getcwd(), file))
+    except Exception as e:
+        return str(e)
+
 
 if __name__ == "__main__":
     app.run(debug=True)

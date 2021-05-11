@@ -13,7 +13,7 @@
     <body>
         <h1> Welcome {{name}}</h1>
         <div>
-            <p>{{error}}</p>
+            <p>{{msg}}</p>
         </div>
         <div>
             <p>Your account number is <span id="idNum">{{id}}</span></p>
@@ -50,19 +50,26 @@
     </body>
     <script>
         const id = document.getElementById("idNum").innerText
-        const amount = document.getElementById("amount").innerText
-        const receiver = document.getElementById("receiver").innerText
         const transfer = document.getElementById("transfer")
         const logout = document.getElementById("logout")
         transfer.addEventListener("click", () => {
             const xhr = new XMLHttpRequest();
-            xhr.open("POST", `/send`, true)
+            xhr.open("POST", "/send", true)
             xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
+            const amount = document.getElementById("amount").value
+            const receiver = document.getElementById("receiver").value
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState == 4 && xhr.status == 200) {
+                    alert("Transaction Successful!")
+                } else {
+                    alert("Transaction Failed!")
+                }
+            }
             xhr.send(`id=${id}&transfer_to=${receiver}&amount=${amount}`)
         })
         logout.addEventListener("click", () => {
             const xhr = new XMLHttpRequest();
-            xhr.open("POST", `/logout`, true)
+            xhr.open("POST", "/logout", false)
             xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
             xhr.send(`id=${id}`)
         })

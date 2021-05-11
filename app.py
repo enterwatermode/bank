@@ -41,10 +41,12 @@ db.session.add(admin)
 db.session.add(eric)
 db.session.commit()
 
+#main 
 @app.route("/", methods = ['POST', 'GET'])
 def index():
     return render_template("index.html")
 
+#login 
 @app.route("/login", methods = ['POST', 'GET'])
 def login():
     if request.method == "POST":
@@ -58,6 +60,7 @@ def login():
     elif request.method == "GET":
         return redirect("/")
 
+#register page
 @app.route("/register", methods = ['POST', 'GET'])
 def register():
     if request.method == "GET":
@@ -73,11 +76,13 @@ def register():
         session[str(last.id)] = name
         return str(last.id)
 
+#logged in user 
 @app.route("/user/<id>")
 def user(id):
     acc = account.query.get(id)
     return render_template("user.html", id = id, name = acc.username, balance = acc.balance, msg = "", records = getRecords(id))
 
+#user log out, redirect to index page
 @app.route("/logout", methods = ['POST', 'GET'])
 def logout():
     if request.method == "POST":
@@ -85,6 +90,7 @@ def logout():
         session.pop(id, None)
     return redirect("/")
 
+#request money transfer to another user
 @app.route("/send", methods = ['POST', 'GET'])
 def send():
         if request.method == "POST":
@@ -107,7 +113,7 @@ def send():
                     return { "balance": acc.balance, "msg": "Transaction Failed", "records": getRecords(my_id) }
         else:
             return redirect("/")
-
+#transfer request verification 
 def verify(transfer_to, amount, my_id):    
     exist = db.session.query(account).filter_by(id = transfer_to).first() is not None
     if not exist:
@@ -120,6 +126,7 @@ def verify(transfer_to, amount, my_id):
     else:
         return False
 
+#deposit money
 @app.route("/deposit", methods = ['POST', 'GET'])
 def deposit():
     if request.method == "POST":
@@ -134,6 +141,7 @@ def deposit():
             acc = account.query.get(my_id)
             return { "balance": acc.balance, "msg": "You have successfully deposited {}$!".format(amount), "records": getRecords(my_id) }
 
+#withdraw money
 @app.route("/withdraw", methods = ['POST', 'GET'])
 def withdraw():
     if request.method == "POST":
@@ -152,9 +160,11 @@ def withdraw():
             acc = account.query.get(my_id)
             return { "balance": acc.balance, "msg": "You have successfully withdrew {}$!".format(amount), "records": getRecords(my_id) }
 
+#balance verification
 def sufficientBanlance(amount, my_id):
     return float(db.session.query(account).filter_by(id = my_id).first().balance) >= float(amount)
 
+# get records of a user 
 def getRecords(id):
     send_record = db.session.query(record).filter_by(sender = id).all()
     receive_record = db.session.query(record).filter(record.receiver == id, record.sender != id).all()
@@ -162,6 +172,7 @@ def getRecords(id):
     + [{"sender": record.sender, "receiver": record.receiver, "amount": record.amount, "time": record.time.strftime('%B %d %Y - %H:%M:%S')} for record in receive_record]
     return records
 
+# download file "f" from /return-files/?file=f
 @app.route('/return-files')
 def return_file():
     try:
@@ -170,7 +181,7 @@ def return_file():
     except Exception as e:
         return str(e)
 
-
+# redirect to site "abc" from /link/?link=abc
 @app.route('/link')
 def link():
     link = request.args.get('link')

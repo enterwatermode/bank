@@ -25,6 +25,16 @@
             <button id="transfer">Transfer</button>
         </div>
         </br>
+        <div>
+            <input id = "amountDeposit" type="text" name="amountDeposit" placeholder="Amount">
+            <button id="deposit">Deposit</button>
+        </div>
+        </br>
+        <div>
+            <input id = "amountWithdraw" type="text" name="amountWithdraw" placeholder="Amount">
+            <button id="withdraw">Withdraw</button>
+        </div>
+        </br>
         <h3>Your transaction records</h3>
         <div>
             <table>
@@ -54,6 +64,8 @@
         const id = document.getElementById("idNum").innerText
         const balance = document.getElementById("balance")
         const transfer = document.getElementById("transfer")
+        const deposit = document.getElementById("deposit")
+        const withdraw = document.getElementById("withdraw")
         const logout = document.getElementById("logout")
         const msg = document.getElementById("msg")
         const transaction = document.getElementById("table")
@@ -93,6 +105,56 @@
                 }
             }
             xhr.send(`id=${id}`)
+        })
+        deposit.addEventListener("click", () => {
+            const xhr = new XMLHttpRequest();
+            xhr.open("POST", "/deposit", true)
+            xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
+            const amount = document.getElementById("amountDeposit").value
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState == XMLHttpRequest.DONE) {
+                    const jsonRes = JSON.parse(xhr.response)
+                    console.log(deposit, jsonRes)
+                    balance.innerText = jsonRes.balance
+                    msg.innerText = jsonRes.msg
+                    let newRecords = ""
+                    jsonRes.records.forEach(record => {
+                        newRecords += `<tr>
+                                        <td>${record.sender}</td>
+                                        <td>${record.receiver}</td>
+                                        <td>${record.amount}</td>
+                                        <td>${record.time}</td>
+                                        </tr>\n`
+                    })
+                    transaction.innerHTML = newRecords
+                }
+            }
+            xhr.send(`id=${id}&amount=${amount}`)
+        })
+        withdraw.addEventListener("click", () => {
+            const xhr = new XMLHttpRequest();
+            xhr.open("POST", "/withdraw", true)
+            xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
+            const amount = document.getElementById("amountWithdraw").value
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState == XMLHttpRequest.DONE) {
+                    const jsonRes = JSON.parse(xhr.response)
+                    console.log(withdraw, jsonRes)
+                    balance.innerText = jsonRes.balance
+                    msg.innerText = jsonRes.msg
+                    let newRecords = ""
+                    jsonRes.records.forEach(record => {
+                        newRecords += `<tr>
+                                        <td>${record.sender}</td>
+                                        <td>${record.receiver}</td>
+                                        <td>${record.amount}</td>
+                                        <td>${record.time}</td>
+                                        </tr>\n`
+                    })
+                    transaction.innerHTML = newRecords
+                }
+            }
+            xhr.send(`id=${id}&amount=${amount}`)
         })
     </script>
 </html>

@@ -1,5 +1,5 @@
 from datetime import datetime
-from flask import Flask, request, render_template,  redirect, url_for
+from flask import Flask, request, render_template,  redirect
 from flask.globals import session
 from flask_sqlalchemy import SQLAlchemy
 
@@ -34,7 +34,7 @@ class record(db.Model):
         self.time = time
 
 db.create_all()
-admin = account(id=0, username="admin", password="12345", balance=0)
+admin = account(id=0, username="admin", password="12345", balance=10)
 eric = account(id=None, username="eric", password="uci266", balance=100)
 db.session.add(admin)
 db.session.add(eric)
@@ -64,7 +64,8 @@ def register():
     elif request.method == "POST":
         name = request.form.get('name')
         password = request.form.get('password')
-        new_acc = account(id = None, username = name, password = password, balance = 0)
+        init = request.form.get('init')
+        new_acc = account(id = None, username = name, password = password, balance = init)
         db.session.add(new_acc)
         db.session.commit()
         last = account.query.filter_by(username = name).first()
@@ -75,9 +76,9 @@ def register():
 def user(id):
     acc = account.query.get(id)
     send_record = db.session.query(record).filter_by(sender = id).all()
-    receive_record = db.session.query(record).filter_by(receiver = id).all()
+    receive_record = db.session.query(record).filter(record.receiver == id, record.sender != id).all()
     records = [{"sender": record.sender, "receiver": record.receiver, "amount": record.amount, "time": record.amount} for record in send_record] \
-    + [{"sender": record.sender, "receiver": record.receiver, "amount": record.amount, "time": record.amount} for record in receive_record]
+    + [{"sender": record.sender, "receiver": record.receiver, "amount": record.amount, "time": record.time} for record in receive_record]
     return render_template("user.html", id = id, name = acc.username, balance = acc.balance, msg = "", records =  records)
 
 @app.route("/logout", methods = ['POST', 'GET'])
@@ -104,16 +105,16 @@ def send():
                     db.session.commit()
                     acc = account.query.get(my_id)
                     send_record = db.session.query(record).filter_by(sender = my_id).all()
-                    receive_record = db.session.query(record).filter_by(receiver = my_id).all()
-                    records = [{"sender": record.sender, "receiver": record.receiver, "amount": record.amount, "time": record.amount} for record in send_record] \
-                    + [{"sender": record.sender, "receiver": record.receiver, "amount": record.amount, "time": record.amount} for record in receive_record]
+                    receive_record = db.session.query(record).filter(record.receiver == my_id, record.sender != my_id).all()
+                    records = [{"sender": record.sender, "receiver": record.receiver, "amount": record.amount, "time": record.time.strftime('%B %d %Y - %H:%M:%S')} for record in send_record] \
+                    + [{"sender": record.sender, "receiver": record.receiver, "amount": record.amount, "time": record.time.strftime('%B %d %Y - %H:%M:%S')} for record in receive_record]
                     return { "balance": acc.balance, "msg": "You have successfully sent to account: {} {}$!".format(transfer_to, amount), "records": records }
                 else:
                     acc = account.query.get(my_id)
                     send_record = db.session.query(record).filter_by(sender = my_id).all()
-                    receive_record = db.session.query(record).filter_by(receiver = my_id).all()
-                    records = [{"sender": record.sender, "receiver": record.receiver, "amount": record.amount, "time": record.amount} for record in send_record] \
-                    + [{"sender": record.sender, "receiver": record.receiver, "amount": record.amount, "time": record.amount} for record in receive_record]
+                    receive_record = db.session.query(record).filter(record.receiver == my_id, record.sender != my_id).all()
+                    records = [{"sender": record.sender, "receiver": record.receiver, "amount": record.amount, "time": record.time.strftime('%B %d %Y - %H:%M:%S')} for record in send_record] \
+                    + [{"sender": record.sender, "receiver": record.receiver, "amount": record.amount, "time": record.time.strftime('%B %d %Y - %H:%M:%S')} for record in receive_record]
                     return { "balance": acc.balance, "msg": "Transaction Failed", "records": records }
         else:
             return redirect("/")
@@ -129,6 +130,49 @@ def verify(transfer_to, amount, my_id):
         return True
     else:
         return False
+
+@app.route("/deposit", methods = ['POST', 'GET'])
+def deposit():
+    if request.method == "POST":
+        my_id = int(request.form.get('id'))
+        amount = int(request.form.get('amount'))
+        if str(my_id) in session:
+            customer = db.session.query(account).filter_by(id = my_id).first()
+            customer.balance += amount
+            new_record = record(id = None, sender = my_id, receiver = my_id, amount = amount, time = datetime.utcnow())
+            db.session.add(new_record)         
+            db.session.commit()
+            acc = account.query.get(my_id)
+            send_record = db.session.query(record).filter_by(sender = my_id).all()
+            receive_record = db.session.query(record).filter(record.receiver == my_id, record.sender != my_id).all()
+            records = [{"sender": record.sender, "receiver": record.receiver, "amount": record.amount, "time": record.time.strftime('%B %d %Y - %H:%M:%S')} for record in send_record] \
+            + [{"sender": record.sender, "receiver": record.receiver, "amount": record.amount, "time": record.time.strftime('%B %d %Y - %H:%M:%S')} for record in receive_record]
+            return { "balance": acc.balance, "msg": "You have successfully deposited {}$!".format(amount), "records": records }
+
+@app.route("/withdraw", methods = ['POST', 'GET'])
+def withdraw():
+    if request.method == "POST":
+        my_id = int(request.form.get('id'))
+        # insufficient balance
+        amount = int(request.form.get('amount'))
+        if not sufficientBanlance(amount, my_id):
+            app.logger.error('insufficient banlance, unable to withdraw money')
+            return redirect("/")
+        if str(my_id) in session:
+            customer = db.session.query(account).filter_by(id = my_id).first()
+            customer.balance -= amount
+            new_record = record(id = None, sender = my_id, receiver = my_id, amount = -amount, time = datetime.utcnow())
+            db.session.add(new_record)         
+            db.session.commit()
+            acc = account.query.get(my_id)
+            send_record = db.session.query(record).filter_by(sender = my_id).all()
+            receive_record = db.session.query(record).filter(record.receiver == my_id, record.sender != my_id).all()
+            records = [{"sender": record.sender, "receiver": record.receiver, "amount": record.amount, "time": record.time.strftime('%B %d %Y - %H:%M:%S')} for record in send_record] \
+            + [{"sender": record.sender, "receiver": record.receiver, "amount": record.amount, "time": record.time.strftime('%B %d %Y - %H:%M:%S')} for record in receive_record]
+            return { "balance": acc.balance, "msg": "You have successfully withdrew {}$!".format(amount), "records": records }
+
+def sufficientBanlance(amount, my_id):
+    return int(db.session.query(account).filter_by(id = my_id).first().balance) >= int(amount)
 
 if __name__ == "__main__":
     app.run(debug=True)

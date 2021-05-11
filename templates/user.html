@@ -61,6 +61,19 @@
         </div>
     </body>
     <script>
+        const getRecord = function(arr) {
+            let newRecords = ""
+            arr.forEach(record => {
+                        newRecords += `<tr>
+                                        <td>${record.sender}</td>
+                                        <td>${record.receiver}</td>
+                                        <td>${record.amount}</td>
+                                        <td>${record.time}</td>
+                                        </tr>\n`
+            })
+            return newRecords
+        }
+
         const id = document.getElementById("idNum").innerText
         const balance = document.getElementById("balance")
         const transfer = document.getElementById("transfer")
@@ -69,6 +82,7 @@
         const logout = document.getElementById("logout")
         const msg = document.getElementById("msg")
         const transaction = document.getElementById("table")
+
         transfer.addEventListener("click", () => {
             const xhr = new XMLHttpRequest();
             xhr.open("POST", "/send", true)
@@ -80,20 +94,12 @@
                     const jsonRes = JSON.parse(xhr.response)
                     balance.innerText = jsonRes.balance
                     msg.innerText = jsonRes.msg
-                    let newRecords = ""
-                    jsonRes.records.forEach(record => {
-                        newRecords += `<tr>
-                                        <td>${record.sender}</td>
-                                        <td>${record.receiver}</td>
-                                        <td>${record.amount}</td>
-                                        <td>${record.time}</td>
-                                        </tr>\n`
-                    })
-                    transaction.innerHTML = newRecords
+                    transaction.innerHTML = getRecord(jsonRes.records)
                 }
             }
             xhr.send(`id=${id}&transfer_to=${receiver}&amount=${amount}`)
         })
+        
         logout.addEventListener("click", () => {
             const xhr = new XMLHttpRequest();
             xhr.open("POST", "/logout", true)
@@ -106,6 +112,7 @@
             }
             xhr.send(`id=${id}`)
         })
+
         deposit.addEventListener("click", () => {
             const xhr = new XMLHttpRequest();
             xhr.open("POST", "/deposit", true)
@@ -117,20 +124,12 @@
                     console.log(deposit, jsonRes)
                     balance.innerText = jsonRes.balance
                     msg.innerText = jsonRes.msg
-                    let newRecords = ""
-                    jsonRes.records.forEach(record => {
-                        newRecords += `<tr>
-                                        <td>${record.sender}</td>
-                                        <td>${record.receiver}</td>
-                                        <td>${record.amount}</td>
-                                        <td>${record.time}</td>
-                                        </tr>\n`
-                    })
-                    transaction.innerHTML = newRecords
+                    transaction.innerHTML = getRecord(jsonRes.records)
                 }
             }
             xhr.send(`id=${id}&amount=${amount}`)
         })
+
         withdraw.addEventListener("click", () => {
             const xhr = new XMLHttpRequest();
             xhr.open("POST", "/withdraw", true)
@@ -142,16 +141,7 @@
                     console.log(withdraw, jsonRes)
                     balance.innerText = jsonRes.balance
                     msg.innerText = jsonRes.msg
-                    let newRecords = ""
-                    jsonRes.records.forEach(record => {
-                        newRecords += `<tr>
-                                        <td>${record.sender}</td>
-                                        <td>${record.receiver}</td>
-                                        <td>${record.amount}</td>
-                                        <td>${record.time}</td>
-                                        </tr>\n`
-                    })
-                    transaction.innerHTML = newRecords
+                    transaction.innerHTML = getRecord(jsonRes.records)
                 }
             }
             xhr.send(`id=${id}&amount=${amount}`)

@@ -1,39 +1,71 @@
 <!doctype html>
-<title> Welcome </title>
-<!doctype html>
-
-{% extends 'baseUser.html' %}
-{% block content %}
-
-<title> User </title>
-<h1> Dear {{name}}, your account id is {{id}} </h1>
-
-<div>
-    <h3>Your current banlance is {{balance}}</h3>
-</div>
-</br>
-<div>
-    <h3>Your transfer records</h3>
-
-    <table>
-        <thead>
-            <td>Receiver</td>
-            <td>Amount</td>
-            <td>Time</td>
-        </thead>
-        <tbody>
-            {% for record in records %}
-                <tr>
-                    <td>{{record.receiver}}</td>
-                    <td>{{record.amount}}</td>
-                    <td>{{record.time}}</td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+<html>
+    <head>
+        <style>
+            h1, h3, div, button, table {
+                text-align: center;
+                margin: auto;
+                left: 0;
+                right: 0;
+            }
+        </style>
+    </head>    
+    <body>
+        <h1> Welcome {{name}}</h1>
+        <div>
+            <p>{{error}}</p>
+        </div>
+        <div>
+            <p>Your account number is <span id="idNum">{{id}}</span></p>
+            <p>Your current balance is {{balance}}</p>
+        </div>
+        <div>
+            <input id = "amount" type="text" name="amount" placeholder="Amount">
+            <input id = "receiver" type="text" name="transfer_to" placeholder="Transfer to">
+            <button id="transfer">Transfer</button>
+        </div>
+        </br>
+        <h3>Your transaction records</h3>
+        <div>
+            <table>
+                <thead>
+                    <td>Receiver</td>
+                    <td>Amount</td>
+                    <td>Time</td>
+                </thead>
+                <tbody>
+                    {% for record in records %}
+                        <tr>
+                            <td>{{record.receiver}}</td>
+                            <td>{{record.amount}}</td>
+                            <td>{{record.time}}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div>
+            <button id="logout">Log out</button>
+        </div>
+    </body>
     <script>
-        console.log(sessionStorage.getItem('id'));
+        const id = document.getElementById("idNum").innerText
+        const amount = document.getElementById("amount").innerText
+        const receiver = document.getElementById("receiver").innerText
+        const transfer = document.getElementById("transfer")
+        const logout = document.getElementById("logout")
+        transfer.addEventListener("click", () => {
+            const xhr = new XMLHttpRequest();
+            xhr.open("POST", `/send`, true)
+            xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
+            xhr.send(`id=${id}&transfer_to=${receiver}&amount=${amount}`)
+        })
+        logout.addEventListener("click", () => {
+            const xhr = new XMLHttpRequest();
+            xhr.open("POST", `/logout`, true)
+            xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
+            xhr.send(`id=${id}`)
+        })
     </script>
-    <!-- reference for the for-loop: https://blog.csdn.net/legend818/article/details/103644565 -->
-</div>
-{% endblock %}
+</html>
+

@@ -49,7 +49,7 @@
                         <tr>
                             <td>{{record.sender}}</td>
                             <td>{{record.receiver}}</td>
-                            <td>{{record.amount}}</td>
+                            <td>{{(Math.round(record.amount * 100) / 100).toFixed(2)}}</td>
                             <td>{{record.time}}</td>
                         </tr>
                     {% endfor %}
@@ -67,11 +67,25 @@
                         newRecords += `<tr>
                                         <td>${record.sender}</td>
                                         <td>${record.receiver}</td>
-                                        <td>${record.amount}</td>
+                                        <td>${(Math.round(record.amount * 100) / 100).toFixed(2)}</td>
                                         <td>${record.time}</td>
-                                        </tr>\n`
+                                       </tr>\n`
             })
             return newRecords
+        }
+
+        const numberValidate = function(num) {
+            if (parseInt(num) < 0 || parseInt(num) > 4294967295.99) { return false }
+            const intReg = /(0|[1-9][0-9]*)/
+            const decReg = /[0-9]{2}/
+            const splits = num.split(".")
+            if (splits.length == 2) {
+                const integer = num.split(".")[0]
+                const decimal = num.split(".")[1]
+                return intReg.test(integer) && decReg.test(decimal)
+            } else {
+                return false
+            }
         }
 
         const id = document.getElementById("idNum").innerText
@@ -84,20 +98,27 @@
         const transaction = document.getElementById("table")
 
         transfer.addEventListener("click", () => {
-            const xhr = new XMLHttpRequest();
-            xhr.open("POST", "/send", true)
-            xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
             const amount = document.getElementById("amount").value
-            const receiver = document.getElementById("receiver").value
-            xhr.onreadystatechange = function() {
-                if (xhr.readyState == XMLHttpRequest.DONE) {
-                    const jsonRes = JSON.parse(xhr.response)
-                    balance.innerText = jsonRes.balance
-                    msg.innerText = jsonRes.msg
-                    transaction.innerHTML = getRecord(jsonRes.records)
+            console.log(amount, numberValidate(amount))
+            if (!numberValidate(amount)) { 
+                msg.innerText = "invalid_input"
+            } else {
+                const receiver = document.getElementById("receiver").value
+                const xhr = new XMLHttpRequest();
+                xhr.open("POST", "/send", true)
+                xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState == XMLHttpRequest.DONE) {
+                        const jsonRes = JSON.parse(xhr.response)
+                        balance.innerText = (Math.round(jsonRes.balance * 100) / 100).toFixed(2)
+                        msg.innerText = jsonRes.msg
+                        transaction.innerHTML = getRecord(jsonRes.records)
+                        amount.value = null
+                        receiver.value = null
+                    }
                 }
+                xhr.send(`id=${id}&transfer_to=${receiver}&amount=${amount}`)
             }
-            xhr.send(`id=${id}&transfer_to=${receiver}&amount=${amount}`)
         })
         
         logout.addEventListener("click", () => {
@@ -114,38 +135,45 @@
         })
 
         deposit.addEventListener("click", () => {
-            const xhr = new XMLHttpRequest();
-            xhr.open("POST", "/deposit", true)
-            xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
             const amount = document.getElementById("amountDeposit").value
-            xhr.onreadystatechange = function() {
-                if (xhr.readyState == XMLHttpRequest.DONE) {
-                    const jsonRes = JSON.parse(xhr.response)
-                    console.log(deposit, jsonRes)
-                    balance.innerText = jsonRes.balance
-                    msg.innerText = jsonRes.msg
-                    transaction.innerHTML = getRecord(jsonRes.records)
+            if (!numberValidate(amount)) { 
+                msg.innerText = "invalid_input"
+            } else {
+                const xhr = new XMLHttpRequest();
+                xhr.open("POST", "/deposit", true)
+                xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState == XMLHttpRequest.DONE) {
+                        const jsonRes = JSON.parse(xhr.response)
+                        balance.innerText = (Math.round(jsonRes.balance * 100) / 100).toFixed(2)
+                        msg.innerText = jsonRes.msg
+                        transaction.innerHTML = getRecord(jsonRes.records)
+                        amount.value = null
+                    }
                 }
+                xhr.send(`id=${id}&amount=${amount}`)
             }
-            xhr.send(`id=${id}&amount=${amount}`)
         })
 
         withdraw.addEventListener("click", () => {
-            const xhr = new XMLHttpRequest();
-            xhr.open("POST", "/withdraw", true)
-            xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
             const amount = document.getElementById("amountWithdraw").value
-            xhr.onreadystatechange = function() {
-                if (xhr.readyState == XMLHttpRequest.DONE) {
-                    const jsonRes = JSON.parse(xhr.response)
-                    console.log(withdraw, jsonRes)
-                    balance.innerText = jsonRes.balance
-                    msg.innerText = jsonRes.msg
-                    transaction.innerHTML = getRecord(jsonRes.records)
+            if (!numberValidate(amount)) { 
+                msg.innerText = "invalid_input"
+            } else {
+                const xhr = new XMLHttpRequest();
+                xhr.open("POST", "/withdraw", true)
+                xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState == XMLHttpRequest.DONE) {
+                        const jsonRes = JSON.parse(xhr.response)
+                        balance.innerText = (Math.round(jsonRes.balance * 100) / 100).toFixed(2)
+                        msg.innerText = jsonRes.msg
+                        transaction.innerHTML = getRecord(jsonRes.records)
+                        amount.value = null
+                    }
                 }
+                xhr.send(`id=${id}&amount=${amount}`)
             }
-            xhr.send(`id=${id}&amount=${amount}`)
         })
     </script>
 </html>
-

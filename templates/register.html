@@ -2,16 +2,65 @@
 <html>
     <head>
         <style>
-
+            div {
+                text-align: center;
+                margin: auto;
+                left: 0;
+                right: 0;
+            }
         </style>
     </head>
     <body>
-        <h3>Register</h3>
-        <form method="POST" action="/register">
-            <input type="text" name="name" placeholder="Name">
-            <input type="password" name="password" placeholder="Password">
-            <input type="text" name="init" placeholder="initial balance">
-            <button>Register</button>
-        </form>
+        <div>
+            <h3>Register</h3>
+            <p id="msg"></p><br>
+            <input id="name" type="text" name="name" placeholder="Name"><br><br>
+            <input id="password" type="password" name="password" placeholder="Password"><br><br>
+            <input id="init" type="text" name="init" placeholder="initial balance"><br><br>
+            <button id="btn">Register</button><br>
+        </div>
     </body>
+    <script>
+        const infoValidate = function(str) {
+            if (str.length < 1 || str.length > 127) { return false } 
+            const strReg = /[_\\-\\.0-9a-z]/
+            return strReg.test(str)
+        }
+
+        const numberValidate = function(num) {
+            if (parseInt(num) < 0 || parseInt(num) > 4294967295.99) { return false }
+            const intReg = /(0|[1-9][0-9]*)/
+            const decReg = /[0-9]{2}/
+            const splits = num.split(".")
+            if (splits.length == 2) {
+                const integer = num.split(".")[0]
+                const decimal = num.split(".")[1]
+                return intReg.test(integer) && decReg.test(decimal)
+            } else {
+                return false
+            }
+        }
+
+        const msg = document.getElementById("msg")
+        const register = document.getElementById("btn")
+        register.addEventListener("click", () => {
+            const init = document.getElementById("init").value
+            const name = document.getElementById("name").value
+            const password = document.getElementById("password").value
+            if (numberValidate(init) && infoValidate(name) && infoValidate(password)) { 
+                const xhr = new XMLHttpRequest();
+                xhr.open("POST", "/register", true)
+                xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState == XMLHttpRequest.DONE) {
+                        alert("Registered Successfully!", xhr.response)
+                        window.location.replace(`/user/${xhr.response}`)
+                    }
+                }
+                xhr.send(`name=${name}&password=${password}&init=${init}`)
+            } else {
+                msg.innerText = "invalid_input"
+            }
+        })
+    </script>
 </html>

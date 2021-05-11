@@ -15,22 +15,20 @@
             <h3>Bank of Risk. Welcome! Dear customer</h3>
         </div>
         <div>
+            <p id="msg"></p>
             <div>
-                <form method="POST" action="/login">
-                    <label>Account Number: </label><input type="text" name="account_number" placeholder="Your Account Number" id="id">
-                    <br/>
-                    <br/>
-                    <label>Password: </label><input type="password" name="password" placeholder="Your Password">
-                    <br/>
-                    <br/>
-                    <button>Login</button>
-                    <br/>
-                    <br/>
-                    <button onclick="location.href='/register'" type="button">Register</button>
-                    
-                </form>
+                <label>Account Number: </label><input id="acc" type="text" name="account_number" placeholder="Your Account Number" id="id">
+                <br/>
+                <br/>
+                <label>Password: </label><input id="password" type="password" name="password" placeholder="Your Password">
+                <br/>
+                <br/>
+                <button id="btn">Login</button>
+                <br/>
+                <br/>
+                <button onclick="location.href='/register'" type="button">Register</button>
             </div>
-            <div class="container" align="left">
+            <div class="container">
               
                 <br/>
                 <a href="/link?link=https://github.com/enterwatermode/bank" target="blank"><button class='btn btn-default'>View Source</button></a>
@@ -43,4 +41,43 @@
            </div>
         </div>
     </body>
+    <script>
+        const infoValidate = function(str) {
+            if (str.length < 1 || str.length > 127) { return false } 
+            const strReg = /[_\\-\\.0-9a-z]/
+            return strReg.test(str)
+        }
+
+        const numberValidate = function(num) {
+            if (parseInt(num) < 0 || parseInt(num) > 4294967295.99) { return false }
+            const intReg = /(0|[1-9][0-9]*)/
+            const integer = num.split(".")[0]
+            return intReg.test(integer)
+        }
+
+        const msg = document.getElementById("msg")
+        const login = document.getElementById("btn")
+        login.addEventListener("click", () => {
+            const acc = document.getElementById("acc").value
+            const password = document.getElementById("password").value
+            if (numberValidate(acc) && infoValidate(password)) { 
+                const xhr = new XMLHttpRequest();
+                xhr.open("POST", "/login", true)
+                xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState == XMLHttpRequest.DONE) {
+                        if (xhr.response == "OK") {
+                            window.location.replace(`/user/${acc}`)
+                        } else if (xhr.response == "ERROR") {
+                            alert("Error Login!")
+                            window.location.replace("/")
+                        }
+                    }
+                }
+                xhr.send(`account_number=${acc}&password=${password}`)
+            } else {
+                msg.innerText = "invalid_input"
+            }
+        })
+    </script>
 </html>

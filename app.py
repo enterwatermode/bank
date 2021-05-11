@@ -13,7 +13,7 @@ class account(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(20))
     password = db.Column(db.String(20))
-    balance = db.Column(db.Integer)
+    balance = db.Column(db.Float)
 
     def __init__(self, id, username, password, balance):
         self.id = id
@@ -24,7 +24,7 @@ class record(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     sender = db.Column(db.Integer)
     receiver = db.Column(db.Integer)
-    amount = db.Column(db.Integer)
+    amount = db.Column(db.Float)
     time = db.Column(db.DateTime, default=datetime.now)
 
     def __init__(self, id, sender, receiver, amount, time):
@@ -35,8 +35,8 @@ class record(db.Model):
         self.time = time
 
 db.create_all()
-admin = account(id=0, username="admin", password="12345", balance=10)
-eric = account(id=None, username="eric", password="uci266", balance=100)
+admin = account(id=0, username="admin", password="12345", balance=10.00)
+eric = account(id=None, username="eric", password="uci266", balance=100.00)
 db.session.add(admin)
 db.session.add(eric)
 db.session.commit()
@@ -53,8 +53,8 @@ def login():
         acc = account.query.get(id)
         if acc is not None and acc.password == password:
             session[str(id)] = acc.username
-            return redirect("/user/{}".format(id))
-        return redirect("/")
+            return "OK"
+        return "ERROR"
     elif request.method == "GET":
         return redirect("/")
 
@@ -71,7 +71,7 @@ def register():
         db.session.commit()
         last = account.query.filter_by(username = name).first()
         session[str(last.id)] = name
-        return redirect("/user/{}".format(last.id))
+        return str(last.id)
 
 @app.route("/user/<id>")
 def user(id):
@@ -91,7 +91,7 @@ def send():
             my_id = int(request.form.get('id'))
             if str(my_id) in session:
                 transfer_to = int(request.form.get('transfer_to'))
-                amount = int(request.form.get('amount'))
+                amount = float(request.form.get('amount'))
                 if verify(transfer_to, amount, my_id):
                     sender = db.session.query(account).filter_by(id = my_id).first()
                     sender.balance -= amount
@@ -112,7 +112,7 @@ def verify(transfer_to, amount, my_id):
     exist = db.session.query(account).filter_by(id = transfer_to).first() is not None
     if not exist:
         app.logger.error('not exist')
-    enough_balance = int(db.session.query(account).filter_by(id = my_id).first().balance) >= int(amount)
+    enough_balance = float(db.session.query(account).filter_by(id = my_id).first().balance) >= float(amount)
     if not enough_balance:
         app.logger.error('not enough balance')
     if exist and enough_balance:
@@ -124,7 +124,7 @@ def verify(transfer_to, amount, my_id):
 def deposit():
     if request.method == "POST":
         my_id = int(request.form.get('id'))
-        amount = int(request.form.get('amount'))
+        amount = float(request.form.get('amount'))
         if str(my_id) in session:
             customer = db.session.query(account).filter_by(id = my_id).first()
             customer.balance += amount
@@ -139,7 +139,7 @@ def withdraw():
     if request.method == "POST":
         my_id = int(request.form.get('id'))
         # insufficient balance
-        amount = int(request.form.get('amount'))
+        amount = float(request.form.get('amount'))
         if not sufficientBanlance(amount, my_id):
             app.logger.error('insufficient banlance, unable to withdraw money')
             return redirect("/")
@@ -153,7 +153,7 @@ def withdraw():
             return { "balance": acc.balance, "msg": "You have successfully withdrew {}$!".format(amount), "records": getRecords(my_id) }
 
 def sufficientBanlance(amount, my_id):
-    return int(db.session.query(account).filter_by(id = my_id).first().balance) >= int(amount)
+    return float(db.session.query(account).filter_by(id = my_id).first().balance) >= float(amount)
 
 def getRecords(id):
     send_record = db.session.query(record).filter_by(sender = id).all()

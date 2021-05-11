@@ -24,7 +24,7 @@ class record(db.Model):
     sender = db.Column(db.Integer)
     receiver = db.Column(db.Integer)
     amount = db.Column(db.Integer)
-    time = db.Column(db.Text)
+    time = db.Column(db.DateTime, default=datetime.now)
 
     def __init__(self, id, sender, receiver, amount, time):
         self.id = id
@@ -46,13 +46,16 @@ def index():
 
 @app.route("/login", methods = ['POST', 'GET'])
 def login():
-    id = int(request.form.get("account_number"))
-    password = request.form.get("password")
-    acc = account.query.get(id)
-    if acc is not None and acc.password == password:
-        session[str(id)] = acc.username
-        return redirect("/user/{}".format(id))
-    return redirect("/")
+    if request.method == "POST":
+        id = int(request.form.get("account_number"))
+        password = request.form.get("password")
+        acc = account.query.get(id)
+        if acc is not None and acc.password == password:
+            session[str(id)] = acc.username
+            return redirect("/user/{}".format(id))
+        return redirect("/")
+    elif request.method == "GET":
+        return redirect("/")
 
 @app.route("/register", methods = ['POST', 'GET'])
 def register():
@@ -71,18 +74,11 @@ def register():
 @app.route("/user/<id>")
 def user(id):
     acc = account.query.get(id)
-    return render_template("user.html", id = id, name = acc.username, balance = acc.balance, records = [
-                                                                                                                    {
-                                                                                                                        'receiver': 'Tom',
-                                                                                                                        'amount': 100,
-                                                                                                                        'time': 'june 6, 2010'
-                                                                                                                    },
-                                                                                                                    {
-                                                                                                                        'receiver': 'Jerry',
-                                                                                                                        'amount': 250,
-                                                                                                                        'time': 'May 5, 2010'
-                                                                                                                    }
-                                                                                                                ])
+    send_record = db.session.query(record).filter_by(sender = id).all()
+    receive_record = db.session.query(record).filter_by(receiver = id).all()
+    records = [{"sender": record.sender, "receiver": record.receiver, "amount": record.amount, "time": record.amount} for record in send_record] \
+    + [{"sender": record.sender, "receiver": record.receiver, "amount": record.amount, "time": record.amount} for record in receive_record]
+    return render_template("user.html", id = id, name = acc.username, balance = acc.balance, msg = "", records =  records)
 
 @app.route("/logout", methods = ['POST', 'GET'])
 def logout():
@@ -103,19 +99,26 @@ def send():
                     sender.balance -= amount
                     receiver = db.session.query(account).filter_by(id = transfer_to).first() 
                     receiver.balance += amount
-                    new_record = record(id = None, sender = sender.id, receiver = receiver.id, amount = amount, time = str(datetime.now().time))
+                    new_record = record(id = None, sender = sender.id, receiver = receiver.id, amount = amount, time = datetime.utcnow())
                     db.session.add(new_record)         
                     db.session.commit()
                     acc = account.query.get(my_id)
-                    return { "balance": acc.balance, "msg": "You have successfully sent to account: {} {}$!".format(transfer_to, amount) }
+                    send_record = db.session.query(record).filter_by(sender = my_id).all()
+                    receive_record = db.session.query(record).filter_by(receiver = my_id).all()
+                    records = [{"sender": record.sender, "receiver": record.receiver, "amount": record.amount, "time": record.amount} for record in send_record] \
+                    + [{"sender": record.sender, "receiver": record.receiver, "amount": record.amount, "time": record.amount} for record in receive_record]
+                    return { "balance": acc.balance, "msg": "You have successfully sent to account: {} {}$!".format(transfer_to, amount), "records": records }
                 else:
                     acc = account.query.get(my_id)
-                    return { "balance": acc.balance, "msg": "Transaction Failed" }
+                    send_record = db.session.query(record).filter_by(sender = my_id).all()
+                    receive_record = db.session.query(record).filter_by(receiver = my_id).all()
+                    records = [{"sender": record.sender, "receiver": record.receiver, "amount": record.amount, "time": record.amount} for record in send_record] \
+                    + [{"sender": record.sender, "receiver": record.receiver, "amount": record.amount, "time": record.amount} for record in receive_record]
+                    return { "balance": acc.balance, "msg": "Transaction Failed", "records": records }
         else:
             return redirect("/")
 
 def verify(transfer_to, amount, my_id):    
-    # transfer_to exist in db
     exist = db.session.query(account).filter_by(id = transfer_to).first() is not None
     if not exist:
         app.logger.error('not exist')

@@ -171,5 +171,10 @@ def return_file():
         return str(e)
 
 
+@app.route('/link')
+def link():
+    link = request.args.get('link')
+    return redirect(link)
+
 if __name__ == "__main__":
     app.run(debug=True)

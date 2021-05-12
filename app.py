@@ -95,22 +95,21 @@ def logout():
 def send():
         if request.method == "POST":
             my_id = int(request.form.get('id'))
-            if str(my_id) in session:
-                transfer_to = int(request.form.get('transfer_to'))
-                amount = float(request.form.get('amount'))
-                if verify(transfer_to, amount, my_id):
-                    sender = db.session.query(account).filter_by(id = my_id).first()
-                    sender.balance -= amount
-                    receiver = db.session.query(account).filter_by(id = transfer_to).first() 
-                    receiver.balance += amount
-                    new_record = record(id = None, sender = sender.id, receiver = receiver.id, amount = amount, time = datetime.utcnow())
-                    db.session.add(new_record)         
-                    db.session.commit()
-                    acc = account.query.get(my_id)
-                    return { "balance": acc.balance, "msg": "You have successfully sent to account: {} {}$!".format(transfer_to, amount), "records": getRecords(my_id) }
-                else:
-                    acc = account.query.get(my_id)
-                    return { "balance": acc.balance, "msg": "Transaction Failed", "records": getRecords(my_id) }
+            transfer_to = int(request.form.get('transfer_to'))
+            amount = float(request.form.get('amount'))
+            if verify(transfer_to, amount, my_id):
+                sender = db.session.query(account).filter_by(id = my_id).first()
+                sender.balance -= amount
+                receiver = db.session.query(account).filter_by(id = transfer_to).first() 
+                receiver.balance += amount
+                new_record = record(id = None, sender = sender.id, receiver = receiver.id, amount = amount, time = datetime.utcnow())
+                db.session.add(new_record)         
+                db.session.commit()
+                acc = account.query.get(my_id)
+                return { "balance": acc.balance, "msg": "You have successfully sent to account: {} {}$!".format(transfer_to, amount), "records": getRecords(my_id) }
+            else:
+                acc = account.query.get(my_id)
+                return { "balance": acc.balance, "msg": "Transaction Failed", "records": getRecords(my_id) }
         else:
             return redirect("/")
 #transfer request verification 

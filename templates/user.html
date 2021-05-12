@@ -52,7 +52,7 @@
                         <tr>
                             <td>{{record.sender}}</td>
                             <td>{{record.receiver}}</td>
-                            <td>{{(Math.round(record.amount * 100) / 100).toFixed(2)}}</td>
+                            <td>{{record.amount}}</td>
                             <td>{{record.time}}</td>
                         </tr>
                     {% endfor %}

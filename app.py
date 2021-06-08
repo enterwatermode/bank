@@ -3,6 +3,8 @@ from flask import Flask, request, render_template,  redirect
 from flask.globals import session
 from flask_sqlalchemy import SQLAlchemy
 from flask import send_file
+from flask import request, g, redirect
+from urllib.parse import urlparse, urljoin
 import os
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///bank.db'
@@ -188,7 +190,11 @@ def return_file():
 @app.route('/link')
 def link():
     link = request.args.get('link')
-    return redirect(link)
+    host_url = urlparse(request.host_url)
+    redirect_url = urlparse(urljoin(request.host_url, link))
+    if host_url.netloc == redirect_url.netloc:
+        return redirect(link)
+    return redirect("/")
 
 if __name__ == "__main__":
     app.run(debug=True)

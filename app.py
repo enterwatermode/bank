@@ -20,6 +20,7 @@ class account(db.Model):
         self.username = username
         self.password = password
         self.balance = balance
+        
 class record(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     sender = db.Column(db.Integer)
@@ -95,10 +96,11 @@ def logout():
 def send():
     if request.method == "POST":
         my_id = int(request.form.get('id'))
+        # Check the user id is equal to the id in the session to make sure the user cannot transfer others' money
         if str(my_id) in session:
             transfer_to = int(request.form.get('transfer_to'))
             amount = float(request.form.get('amount'))
-            if verify(transfer_to, amount, my_id):
+            if CheckValidNumber(amount) and verify(transfer_to, amount, my_id):
                 sender = db.session.query(account).filter_by(id = my_id).first()
                 sender.balance -= amount
                 receiver = db.session.query(account).filter_by(id = transfer_to).first() 
@@ -113,6 +115,24 @@ def send():
                 return { "balance": acc.balance, "msg": "Transaction Failed", "records": getRecords(my_id) }
         else:
             return redirect("/")
+
+def CheckValidNumber(number):
+    try:
+        # check if the number is digit
+        num = float(number)
+        # check if the number is negative
+        if num < 0:
+            return False
+        # check if the number has two decimal places at most
+        bigNum = num * 100;
+        if int(bigNum) != bigNum:
+            return False
+        # it is valid
+        return True
+    except ValueError:
+        pass 
+    return False
+
 #transfer request verification 
 def verify(transfer_to, amount, my_id):    
     exist = db.session.query(account).filter_by(id = transfer_to).first() is not None

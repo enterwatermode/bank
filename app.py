@@ -93,8 +93,9 @@ def logout():
 #request money transfer to another user
 @app.route("/send", methods = ['POST', 'GET'])
 def send():
-        if request.method == "POST":
-            my_id = int(request.form.get('id'))
+    if request.method == "POST":
+        my_id = int(request.form.get('id'))
+        if str(my_id) in session:
             transfer_to = int(request.form.get('transfer_to'))
             amount = float(request.form.get('amount'))
             if verify(transfer_to, amount, my_id):

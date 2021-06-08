@@ -180,7 +180,7 @@ def return_file():
     try:
         file = request.args.get('file')
         file_to_download = os.path.join(os.getcwd(), file)
-        if os.path.os.path.dirname(file_to_download) == (os.getcwd() + "/private"):
+        if os.path.os.path.dirname(file_to_download) == (os.getcwd() + "/public"):
             return send_file(os.path.join(os.getcwd(), file))
         return "file not permitted for downloading or does not exist"
     except Exception as e:
